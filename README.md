@@ -43,7 +43,7 @@
 ### 설치
 ```bash
 # 저장소 클론
-git clone [repository-url]
+git clone https://github.com/joohwan-chung/url-connection-test-electron.git
 cd url-connection-test-node
 
 # 의존성 설치
