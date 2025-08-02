@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL Connection Test</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div class="titlebar">
+    <div class="titlebar-content">
+      <div class="titlebar-title">🔍 URL Connection Test</div>
+    </div>
+  </div>
+  
+  <div class="container">
+    <header class="header">
+      <div class="header-content">
+        <div class="header-left">
+          <h1>URL Connection Test</h1>
+          <p>엑셀 파일의 도메인 주소들의 실제 접속 가능 여부를 검사합니다</p>
+        </div>
+        <div class="header-right">
+          <div class="status-indicator" id="statusIndicator">
+            <div class="status-dot"></div>
+            <span class="status-text">대기 중</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="main-content">
+      <div class="settings-panel">
+        <div class="settings-header">
+          <h2>⚙️ 설정 & 컨트롤</h2>
+          <div class="control-buttons">
+            <button id="startBtn" class="btn btn-primary">🚀 시작</button>
+            <button id="stopBtn" class="btn btn-danger" disabled>⏹️ 중지</button>
+            <button id="openResultBtn" class="btn btn-secondary">📂 결과</button>
+          </div>
+        </div>
+        
+        <div class="settings-content">
+          <div class="basic-settings">
+            <div class="setting-group">
+              <label for="fileInput">📁 엑셀 파일:</label>
+              <div class="file-input-group">
+                <input type="text" id="fileInput" placeholder="엑셀 파일을 선택해주세요" readonly>
+                <button id="selectFileBtn" class="btn btn-secondary btn-small">선택</button>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-group">
+                <label for="columnIndex">📊 컬럼:</label>
+                <select id="columnIndex">
+                  <option value="">자동 감지</option>
+                  <option value="0">A열</option>
+                  <option value="1">B열</option>
+                  <option value="2">C열</option>
+                  <option value="3">D열</option>
+                </select>
+              </div>
+
+              <div class="setting-group">
+                <label for="maxCount">🔢 검사 개수:</label>
+                <input type="number" id="maxCount" placeholder="전체" min="1">
+              </div>
+            </div>
+          </div>
+
+          <div class="advanced-settings">
+            <div class="setting-row">
+              <div class="setting-group">
+                <label for="concurrentRequests">⚡ 동시 요청:</label>
+                <input type="number" id="concurrentRequests" value="100" min="10" max="1000">
+                <small>50-200 권장</small>
+              </div>
+
+              <div class="setting-group">
+                <label for="timeout">⏱️ 타임아웃 (초):</label>
+                <input type="number" id="timeout" value="30" min="10" max="120">
+                <small>30-60초 권장</small>
+              </div>
+
+              <div class="setting-group">
+                <label for="retryLimit">🔄 재시도:</label>
+                <input type="number" id="retryLimit" value="1" min="0" max="5">
+                <small>1-2회 권장</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-stats-panel">
+        <div class="progress-section">
+          <h2>📊 진행 상황</h2>
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <div class="progress-text">
+              <span id="progressText" class="progress-count">대기 중...</span>
+              <span id="progressPercent" class="progress-percent">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-section">
+          <h2>📈 통계</h2>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-label">총 요청</div>
+              <div id="totalRequests" class="stat-value">0</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">성공</div>
+              <div id="successCount" class="stat-value success">0</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">실패</div>
+              <div id="failCount" class="stat-value fail">0</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">성공률</div>
+              <div id="successRate" class="stat-value">0%</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">HTTP 성공</div>
+              <div id="httpSuccessCount" class="stat-value http-success">0</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">HTTPS 성공</div>
+              <div id="httpsSuccessCount" class="stat-value https-success">0</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">평균 응답시간</div>
+              <div id="avgResponseTime" class="stat-value">0ms</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">처리 속도</div>
+              <div id="processingSpeed" class="stat-value">0 req/s</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="data-grid-panel">
+      <div class="grid-header">
+        <h2>📋 도메인 검사 목록</h2>
+        <div class="grid-controls">
+          <span class="grid-info">총 <span id="totalDomains">0</span>개 도메인</span>
+          <div class="grid-filters">
+            <button class="filter-btn active" data-filter="all">전체</button>
+            <button class="filter-btn" data-filter="pending">대기</button>
+            <button class="filter-btn" data-filter="success">성공</button>
+            <button class="filter-btn" data-filter="failed">실패</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 필터 전환 프로그레스바 -->
+      <div id="filterProgressBar" class="filter-progress-bar" style="display: none;">
+        <div class="filter-progress-content">
+          <div class="filter-spinner"></div>
+          <span>필터 전환 중...</span>
+        </div>
+      </div>
+      
+      <div class="grid-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>번호</th>
+              <th>도메인 주소</th>
+              <th>HTTP 상태</th>
+              <th>HTTPS 상태</th>
+              <th>응답시간</th>
+              <th>최종 결과</th>
+            </tr>
+          </thead>
+          <tbody id="dataTableBody">
+            <tr class="empty-row">
+              <td colspan="6">엑셀 파일을 선택하고 테스트를 시작하세요</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 환영 모달 -->
+  <div id="welcomeModal" class="welcome-modal">
+    <div class="welcome-content">
+      <div class="welcome-header">
+        <div class="welcome-icon">🎉</div>
+        <h1 class="welcome-title">환영합니다!</h1>
+        <p class="welcome-subtitle">URL Connection Test에 오신 것을 환영합니다</p>
+      </div>
+      
+      <div class="welcome-body">
+        <div class="welcome-features">
+          <div class="feature-item">
+            <div class="feature-icon">📊</div>
+            <div class="feature-text">
+              <h3>엑셀 파일 분석</h3>
+              <p>엑셀 파일에서 도메인 주소를 자동으로 추출합니다</p>
+            </div>
+          </div>
+          
+          <div class="feature-item">
+            <div class="feature-icon">⚡</div>
+            <div class="feature-text">
+              <h3>고속 검사</h3>
+              <p>동시 요청을 통한 빠른 URL 접속 가능성 검사</p>
+            </div>
+          </div>
+          
+          <div class="feature-item">
+            <div class="feature-icon">📈</div>
+            <div class="feature-text">
+              <h3>실시간 통계</h3>
+              <p>진행 상황과 결과를 실시간으로 확인할 수 있습니다</p>
+            </div>
+          </div>
+          
+          <div class="feature-item">
+            <div class="feature-icon">💾</div>
+            <div class="feature-text">
+              <h3>결과 저장</h3>
+              <p>검사 결과를 엑셀 파일로 자동 저장합니다</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="welcome-tips">
+          <h3>💡 사용 팁</h3>
+          <ul>
+            <li>엑셀 파일의 첫 번째 행은 헤더로 인식됩니다</li>
+            <li>도메인 주소는 자동으로 감지되지만 컬럼을 직접 지정할 수도 있습니다</li>
+            <li>동시 요청 수는 서버 성능에 따라 조정하세요</li>
+            <li>대용량 파일의 경우 검사 개수를 제한하는 것을 권장합니다</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="welcome-footer">
+        <button id="welcomeStartBtn" class="btn btn-primary btn-large">
+          🚀 시작하기
+        </button>
+        <button id="welcomeSkipBtn" class="btn btn-secondary">
+          건너뛰기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 로딩 모달 -->
+  <div id="loadingModal" class="loading-modal">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <h3>📖 엑셀 파일 로드 중...</h3>
+      <p id="loadingMessage">파일을 분석하고 도메인을 추출하고 있습니다.</p>
+      <div class="loading-progress">
+        <div class="loading-progress-bar">
+          <div id="loadingProgressFill" class="loading-progress-fill"></div>
+        </div>
+        <div class="loading-progress-text">
+          <span id="loadingProgressText">0%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 중지 모달 -->
+  <div id="stopModal" class="loading-modal">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <h3>⏹️ 테스트 중지 중...</h3>
+      <p id="stopMessage">실행 중인 테스트를 안전하게 중지하고 있습니다.</p>
+      <div class="loading-progress">
+        <div class="loading-progress-bar">
+          <div id="stopProgressFill" class="loading-progress-fill"></div>
+        </div>
+        <div class="loading-progress-text">
+          <span id="stopProgressText">중지 중...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+
+</html>

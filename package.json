@@ -1,0 +1,49 @@
+{
+  "name": "url-connection-test-electron",
+  "version": "1.0.0",
+  "description": "URL 접속 가능 여부 검사 도구 (일렉트론 버전)",
+  "main": "main.js",
+  "scripts": {
+    "start": "node index.js",
+    "electron": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5",
+    "got": "^13.0.0",
+    "p-limit": "^5.0.0"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "type": "module",
+  "build": {
+    "appId": "com.urlconnectiontest.app",
+    "productName": "URL Connection Test",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "renderer.js",
+      "index.html",
+      "styles.css",
+      "index.js",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}
